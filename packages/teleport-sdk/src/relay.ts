@@ -106,19 +106,24 @@ async function waitForRelayTaskConfirmation(
   let isExecPending = false
   while (true) {
     const { data } = await queryGelatoApi(`tasks/GelatoMetaBox/${taskId}`, 'get')
-    // console.log(`TaskId=${taskId}, data:`, data[0])
     if (data[0]?.taskState === 'ExecSuccess') {
+      console.log(`TaskId=${taskId}, data:`, data[0])
+
       const txHash = data[0].execution?.transactionHash
       if (txHash) return txHash
     } else if (data[0]?.taskState === 'ExecPending') {
       isExecPending = true
     }
     if (!isExecPending && data[0]?.lastCheck?.message?.toLowerCase().includes('error')) {
+      console.log(`TaskId=${taskId}, data:`, data[0])
+
       const { message, reason } = data[0].lastCheck
       throw new Error(`Gelato relay failed. TaskId=${taskId} ${message}: "${reason}"`)
     }
 
     if (timeoutMs !== undefined && timeSlept >= timeoutMs) {
+      console.log(`TaskId=${taskId}, data:`, data[0])
+
       throw new Error(`Gelato task ${taskId} did not complete within ${timeoutMs}ms.`)
     }
     await sleep(pollingIntervalMs)
